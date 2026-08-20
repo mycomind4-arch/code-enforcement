@@ -2,20 +2,20 @@ import { describe, expect, it } from 'vitest'
 import { runCodeEnforcementGoldWorkflow, type CodeEnforcementGoldDependencies } from './gold-standard'
 
 const allPass = (): CodeEnforcementGoldDependencies => ({
-  'secure-ingest': async () => true,
-  classify: async () => true,
-  extract: async () => true,
-  timeline: async () => true,
-  evidence: async () => true,
-  discrepancies: async () => true,
-  strategy: async () => true,
-  draft: async () => true,
-  validate: async () => true,
-  review: async () => true,
-  authorization: async () => true,
-  submit: async () => true,
-  track: async () => true,
-  proof: async () => true,
+  'secure-ingest': async () => ({ passed: true, evidenceIds: ['ingest:document'] }),
+  classify: async () => ({ passed: true, evidenceIds: ['classify:notice'] }),
+  extract: async () => ({ passed: true, evidenceIds: ['extract:fact'] }),
+  timeline: async () => ({ passed: true, evidenceIds: ['timeline:event'] }),
+  evidence: async () => ({ passed: true, evidenceIds: ['evidence:source'] }),
+  discrepancies: async () => ({ passed: true, evidenceIds: ['discrepancy:finding'] }),
+  strategy: async () => ({ passed: true, evidenceIds: ['strategy:plan'] }),
+  draft: async () => ({ passed: true, evidenceIds: ['draft:document'] }),
+  validate: async () => ({ passed: true, evidenceIds: ['validation:check'] }),
+  review: async () => ({ passed: true, evidenceIds: ['review:approval'] }),
+  authorization: async () => ({ passed: true, evidenceIds: ['authorization:actor'] }),
+  submit: async () => ({ passed: true, evidenceIds: ['submit:provider'] }),
+  track: async () => ({ passed: true, evidenceIds: ['track:number'] }),
+  proof: async () => ({ passed: true, evidenceIds: ['proof:provider'] }),
 })
 
 describe('Code Enforcement Gold Standard workflow', () => {
@@ -27,11 +27,12 @@ describe('Code Enforcement Gold Standard workflow', () => {
       'discrepancies', 'strategy', 'draft', 'validate', 'review',
       'authorization', 'submit', 'track', 'proof',
     ])
+    expect(result.stages.every(stage => stage.evidenceIds.length > 0)).toBe(true)
   })
 
   it('blocks before submission when review fails', async () => {
     const dependencies = allPass()
-    dependencies.review = async () => false
+    dependencies.review = async () => ({ passed: false, evidenceIds: [], message: 'review failed' })
     const result = await runCodeEnforcementGoldWorkflow(dependencies)
 
     expect(result.status).toBe('blocked')
@@ -41,7 +42,7 @@ describe('Code Enforcement Gold Standard workflow', () => {
 
   it('blocks when procedural evidence analysis fails', async () => {
     const dependencies = allPass()
-    dependencies.evidence = async () => false
+    dependencies.evidence = async () => ({ passed: false, evidenceIds: [], message: 'evidence failed' })
     const result = await runCodeEnforcementGoldWorkflow(dependencies)
 
     expect(result.status).toBe('blocked')
@@ -50,10 +51,20 @@ describe('Code Enforcement Gold Standard workflow', () => {
 
   it('requires proof before completion', async () => {
     const dependencies = allPass()
-    dependencies.proof = async () => false
+    dependencies.proof = async () => ({ passed: false, evidenceIds: [], message: 'proof unavailable' })
     const result = await runCodeEnforcementGoldWorkflow(dependencies)
 
     expect(result.status).toBe('blocked')
     expect(result.stages.at(-1)?.stage).toBe('proof')
+  })
+
+  it('blocks a successful-looking stage with no evidence', async () => {
+    const dependencies = allPass()
+    dependencies.discrepancies = async () => ({ passed: true, evidenceIds: [], message: 'no provenance' })
+    const result = await runCodeEnforcementGoldWorkflow(dependencies)
+
+    expect(result.status).toBe('blocked')
+    expect(result.stages.at(-1)?.stage).toBe('discrepancies')
+    expect(result.stages.at(-1)?.status).toBe('blocked')
   })
 })
