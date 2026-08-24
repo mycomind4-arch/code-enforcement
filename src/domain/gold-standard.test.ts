@@ -522,7 +522,7 @@ describe('Code Enforcement — Gold Standard Test Suite', () => {
   describe('AI Task Routing', () => {
     it('should use Gemini as default for all primary tasks', () => {
       for (const [task, config] of Object.entries(AI_TASK_CONFIG)) {
-        if (task === 'draft_critique' || task === 'final_validation') continue; // These use different providers intentionally
+        if (task === 'draft_critique' || task === 'final_validation' || task === 'correction_draft_critique' || task === 'correction_final_validation') continue; // These use different providers intentionally
         expect(config.preferredProvider).toBe('gemini');
       }
     });

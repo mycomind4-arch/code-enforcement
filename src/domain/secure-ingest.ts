@@ -269,3 +269,13 @@ export function ingestDocuments(inputs: Array<{
 
   return { documents, duplicates, warnings, blocked };
 }
+
+// ─── Duplicate Hash Check (Utility) ─────────────────────────────────────────
+
+/**
+ * Check whether a hash has already been seen in the provided list.
+ * Used by both workflows for duplicate document detection.
+ */
+export function checkDuplicate(hash: string, seenHashes: string[]): boolean {
+  return seenHashes.includes(hash);
+}

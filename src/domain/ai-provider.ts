@@ -93,7 +93,19 @@ export type CETask =
   | 'response_strategy'
   | 'draft_generation'
   | 'draft_critique'
-  | 'final_validation';
+  | 'final_validation'
+  // Workflow 2 — Correction tasks
+  | 'correction_issue_extraction'
+  | 'recipient_reconciliation'
+  | 'property_reconciliation'
+  | 'case_identifier_reconciliation'
+  | 'scope_reconciliation'
+  | 'deadline_reconciliation'
+  | 'authority_reconciliation'
+  | 'correction_strategy'
+  | 'correction_draft_generation'
+  | 'correction_draft_critique'
+  | 'correction_final_validation';
 
 // ─── Task Routing Configuration ─────────────────────────────────────────────
 
@@ -238,6 +250,99 @@ export const AI_TASK_CONFIG: Record<CETask, TaskRoutingConfig> = {
   },
   final_validation: {
     task: 'final_validation',
+    preferredProvider: 'claude',
+    fallbackProviders: ['openai'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 20000,
+  },
+  // ── Workflow 2 — Correction Tasks ───────────────────────────────────────
+  correction_issue_extraction: {
+    task: 'correction_issue_extraction',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['openai'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 25000,
+  },
+  recipient_reconciliation: {
+    task: 'recipient_reconciliation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['claude'],
+    requiresIndependentReview: true,
+    independentReviewProvider: 'claude',
+    maxRetries: 2,
+    timeoutMs: 25000,
+  },
+  property_reconciliation: {
+    task: 'property_reconciliation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['claude'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 25000,
+  },
+  case_identifier_reconciliation: {
+    task: 'case_identifier_reconciliation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['openai'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 20000,
+  },
+  scope_reconciliation: {
+    task: 'scope_reconciliation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['openai'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 20000,
+  },
+  deadline_reconciliation: {
+    task: 'deadline_reconciliation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['openai'],
+    requiresIndependentReview: true,
+    independentReviewProvider: 'claude',
+    maxRetries: 2,
+    timeoutMs: 20000,
+  },
+  authority_reconciliation: {
+    task: 'authority_reconciliation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['claude'],
+    requiresIndependentReview: true,
+    independentReviewProvider: 'claude',
+    maxRetries: 2,
+    timeoutMs: 30000,
+  },
+  correction_strategy: {
+    task: 'correction_strategy',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['claude'],
+    requiresIndependentReview: true,
+    independentReviewProvider: 'claude',
+    maxRetries: 2,
+    timeoutMs: 30000,
+  },
+  correction_draft_generation: {
+    task: 'correction_draft_generation',
+    preferredProvider: 'gemini',
+    fallbackProviders: ['claude'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 45000,
+  },
+  correction_draft_critique: {
+    task: 'correction_draft_critique',
+    preferredProvider: 'claude',
+    fallbackProviders: ['openai'],
+    requiresIndependentReview: false,
+    maxRetries: 2,
+    timeoutMs: 30000,
+  },
+  correction_final_validation: {
+    task: 'correction_final_validation',
     preferredProvider: 'claude',
     fallbackProviders: ['openai'],
     requiresIndependentReview: false,

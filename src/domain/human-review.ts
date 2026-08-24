@@ -204,8 +204,8 @@ export function buildReviewSummary(input: {
 // ─── Authorization ────────────────────────────────────────────────────────────
 
 export function createAuthorizationRecord(
-  state: AuthorizationState,
-  userId: string,
+  state: AuthorizationState = 'pending_review',
+  userId: string = '',
   notes?: string,
   changesRequested?: string[],
 ): AuthorizationRecord {
@@ -215,6 +215,25 @@ export function createAuthorizationRecord(
     userId,
     notes,
     changesRequested,
+  };
+}
+
+export function approveAuthorization(record: AuthorizationRecord, userId: string): AuthorizationRecord {
+  return {
+    ...record,
+    state: 'approved',
+    timestamp: new Date().toISOString(),
+    userId,
+  };
+}
+
+export function rejectAuthorization(record: AuthorizationRecord, userId: string, notes?: string): AuthorizationRecord {
+  return {
+    ...record,
+    state: 'rejected',
+    timestamp: new Date().toISOString(),
+    userId,
+    notes: notes ?? record.notes,
   };
 }
 

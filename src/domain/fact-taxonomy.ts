@@ -16,6 +16,20 @@ export type FactCategory =
   | 'RECOMMENDATION'
   | 'CONFLICT';
 
+// ─── Fact Status (Correction Lifecycle) ───────────────────────────────────────
+//
+// FactStatus tracks the lifecycle state of a fact during correction review.
+// Distinct from FactCategory (which classifies the *kind* of fact), FactStatus
+// tracks whether a fact has been verified against source documents, disputed
+// by contradicting evidence, or remains an unverified user assertion.
+
+export type FactStatus =
+  | 'verified'        // Confirmed against authoritative source documents
+  | 'user_assertion'  // Asserted by the user, not yet verified against sources
+  | 'conflict'        // Contradicts other evidence; needs resolution
+  | 'inference'       // Derived by inference from other facts
+  | 'unknown';        // Status not yet determined
+
 export interface FactProvenance {
   source: string;
   documentId?: string;
