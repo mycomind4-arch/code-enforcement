@@ -1,7 +1,15 @@
-node_modules
-dist
-.env
-.env.local
-*.log
-.DS_Store
-.next
+# Cloudflare / OpenNext build artifacts
+.open-next/
+.wrangler/
+
+# Dependencies
+node_modules/
+
+# Next.js build
+.next/
+out/
+
+# Misc
+*.tsbuildinfo
+.env*.local
+dist/
