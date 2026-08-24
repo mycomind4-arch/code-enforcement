@@ -1,4 +1,4 @@
-import './globals.css'
+import '../src/ui/tokens/globals.css'
 
 export const metadata = {
   title: 'Code Enforcement | My-CoMind',

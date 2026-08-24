@@ -1,10 +1,10 @@
-import CaseWorkspace from './CaseWorkspace'
+import { CodeEnforcementWorkspace } from '../../src/ui/shell/workspace'
 
 export const metadata = {
-  title: 'Code Enforcement Case Workspace | My-CoMind',
-  description: 'Build an evidence-first code enforcement case from notices, supporting documents, property facts, deadlines, and confirmed case information.',
+  title: 'Case Workspace | Code Enforcement | My-CoMind',
+  description: 'Evidence-first command center for code enforcement cases — timeline, evidence, findings, violations, property, workflows, and communications.',
 }
 
 export default function Dashboard() {
-  return <main className="appShell"><CaseWorkspace /></main>
+  return <CodeEnforcementWorkspace />
 }
