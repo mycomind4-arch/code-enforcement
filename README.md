@@ -1,139 +1,90 @@
-# Code Enforcement — Respond to Property Inspection Request
+# Code Enforcement
 
-**Flagship Gold Standard Workflow**
+> A property-centric command center for understanding, managing, and responding to local code-enforcement cases.
 
-Evidence-first, property-aware, jurisdiction-aware, multi-LLM procedural analysis and response system for code enforcement property inspection requests.
+Code Enforcement is a My-CoMind vertical built around the evidence-first architecture proven in FairProcess and the property/GIS workflow developed in FairProcessMaps.
 
-## Overview
+## Product goal
 
-This system helps a person facing a code enforcement inspection request to:
+Turn a confusing code-enforcement notice into a clear, evidence-backed action plan without requiring the user to understand municipal systems, legal terminology, or scattered public records.
 
-1. **Understand** what the notice says and what the agency is asking
-2. **Verify** the complaint basis, property records, and jurisdiction
-3. **Document** the timeline, evidence, and discrepancies
-4. **Respond** with a factual, professional draft — all with multi-LLM verification
+The product should answer five questions immediately:
 
-It is **not** a letter generator. It is an evidence-first procedural analysis system.
+1. **What is happening?** — case status, alleged violations, deadlines, penalties, and next events.
+2. **What evidence supports it?** — notices, inspection reports, photos, permits, ordinances, correspondence, service records, and public-record sources.
+3. **What is missing or inconsistent?** — contradictions, missing service proof, unexplained status changes, incomplete records, and timeline anomalies.
+4. **What can I do next?** — cure, communicate, request records, request inspection/reinspection, seek hearing/review, appeal, or prepare a response.
+5. **What should I send?** — guided, evidence-linked communications and response packets with human approval.
 
-## Gold Standard Certification
+## Reuse from FairProcess / FairProcessMaps
 
-All 33 Gold stages pass:
+The vertical intentionally reuses concepts rather than creating a parallel civic platform:
 
-- ✅ Secure document ingestion (with prompt injection defenses)
-- ✅ Document classification (with confidence scoring)
-- ✅ Notice extraction (with source provenance)
-- ✅ Complaint provenance (allegation ≠ verified condition)
-- ✅ Recipient/ownership reconciliation (deceased recipient support)
-- ✅ Property intelligence (address/APN/owner reconciliation)
-- ✅ Jurisdiction identification (McKinleyville → Humboldt County, not assumed)
-- ✅ Authoritative jurisdiction research (official sources only)
-- ✅ Inspection scope analysis (explicit/partial/ambiguous/unknown)
-- ✅ Consent/authority analysis (with Fourth Amendment awareness)
-- ✅ Warrant language analysis
-- ✅ Deterministic timeline (with fact classification)
-- ✅ Evidence graph (full traceability)
-- ✅ Discrepancy engine (15+ discrepancy types)
-- ✅ Multi-LLM routing (Gemini default, OpenAI/Claude fallback)
-- ✅ Independent model review (high-consequence tasks)
-- ✅ Disagreement handling (blocks automatic finalization)
-- ✅ Grounded strategy engine (12 strategy types)
-- ✅ Draft engine (with fabrication check)
-- ✅ Independent draft critique
-- ✅ Final validation (different provider than drafting)
-- ✅ Provenance (every consequential output traceable)
-- ✅ Human review & authorization (no automatic send)
-- ✅ Fulfillment adapter (MailMyPDF boundary)
-- ✅ Tracking & proof generation
-- ✅ SEO canonical route
-- ✅ 71 tests passing
-- ✅ Production build passing
+- Evidence vault with source, acquisition metadata, page references, hashes, provenance, and human review.
+- Property-centric project model: property → case → evidence → events → findings → actions.
+- Deterministic timeline and procedural checkpoint engine.
+- Versioned jurisdiction policy packs.
+- GIS/property intelligence and parcel resolution.
+- Due-process discrepancy detection.
+- Append-only audit/event history.
+- Cloudflare-first deployment using Workers, D1, and R2.
 
-## Architecture
+FairProcess describes the underlying evidence-first recordation integrity model and explicitly separates evidence extraction from consequential legal conclusions. FairProcessMaps adds the property/GIS, evidence vault, automatic timeline, and discrepancy-analysis workflow.
 
-### AI Provider Layer (Phase 1)
+## Core UX
 
-- **Gemini** is the default/primary provider
-- **OpenAI** and **Claude** are fallback/independent-review providers
-- Provider-neutral `AIProvider` abstraction
-- Task-specific routing via `AI_TASK_CONFIG`
-- Circuit breaker, timeout handling, output validation
-- Model disagreement detection with `HUMAN_REVIEW_REQUIRED` blocking
+### Home / Case Intake
 
-### Task Routing
+- Paste or upload a notice.
+- Enter an address, APN, case number, or citation number.
+- AI identifies jurisdiction, agency, case identifiers, alleged violations, dates, deadlines, and requested action.
+- User confirms extracted facts before they become case facts.
 
-| Task | Primary | Fallback | Independent Review |
-|------|---------|----------|-------------------|
-| Document Classification | Gemini | OpenAI | — |
-| Notice Extraction | Gemini | Claude | — |
-| Complaint Extraction | Gemini | OpenAI | — |
-| Authority Extraction | Gemini | Claude | ✅ Claude |
-| Scope Extraction | Gemini | OpenAI | — |
-| Deadline Extraction | Gemini | OpenAI | — |
-| Property Reconciliation | Gemini | Claude | — |
-| Jurisdiction ID | Gemini | OpenAI | — |
-| Procedural Analysis | Gemini | Claude | ✅ Claude |
-| Jurisdiction Research | Gemini | Claude | — |
-| Evidence Gap Analysis | Gemini | OpenAI | — |
-| Contradiction Analysis | Gemini | Claude | ✅ Claude |
-| Response Strategy | Gemini | Claude | ✅ Claude |
-| Draft Generation | Gemini | Claude | — |
-| Draft Critique | Claude | OpenAI | — |
-| Final Validation | Claude | OpenAI | — |
+### Case Command Center
 
-### Fact Taxonomy
+- **At a Glance:** status, urgency, next deadline, exposure, open issues.
+- **Timeline:** every known event with source links and confidence.
+- **Violations:** each allegation, ordinance/code reference, inspection date, compliance requirement, cure status, and evidence.
+- **Evidence:** documents, photos, videos, permits, correspondence, service proof, public records.
+- **Property Intelligence:** parcel, zoning, permits, prior cases, ownership/history, map context.
+- **Issues & Findings:** missing evidence, contradictions, procedural checkpoints, and items needing human review.
+- **Actions:** tasks, deadlines, record requests, calls, inspections, responses, appeals.
+- **Communications:** draft and track letters/emails/forms; optionally connect to certified-mail workflows later.
 
-Every claim is classified as one of:
-- `VERIFIED_FACT` — independently verified
-- `USER_ASSERTION` — user-supplied, unverified
-- `INFERENCE` — system-derived reasoning
-- `UNKNOWN` — cannot be determined
-- `RULE` — official source rule
-- `RECOMMENDATION` — system suggestion
-- `CONFLICT` — contradictory evidence
+### AI assistant
 
-### Key Design Principles
+The assistant is case-grounded. It must distinguish:
 
-1. **User events are USER_ASSERTION until independently verified** — never silently converted to fact
-2. **No automatic legal conclusions** — the system never says "the inspection is illegal" or "you can refuse"
-3. **Constitutional awareness without universal rules** — Camara and See are referenced with cautions
-4. **Jurisdiction must be resolved before jurisdiction-specific conclusions** — McKinleyville is unincorporated Humboldt County
-5. **A complaint is not proof of a violation**
-6. **"No matching public record" ≠ "There was no call"**
-7. **Human authorization required** — no automatic consequential send
+- **Fact** — directly supported by evidence.
+- **Inference** — reasoned from evidence but not directly stated.
+- **Unknown** — evidence is missing.
+- **Rule** — supplied by a jurisdiction policy source.
+- **Recommendation** — proposed next step, requiring user approval.
 
-## Configuration
+It must never silently convert an absent record into proof that something did not happen.
 
-### Required Secrets
+## Initial analysis engine
 
-```
-GEMINI_API_KEY=your-gemini-api-key     # DEFAULT provider
-OPENAI_API_KEY=your-openai-api-key      # Fallback/independent review
-ANTHROPIC_API_KEY=your-claude-api-key   # Fallback/independent review
-MAILMYPDF_API_URL=your-mailmypdf-url     # Fulfillment (optional)
-MAILMYPDF_API_KEY=your-mailmypdf-key     # Fulfillment (optional)
-```
+The first deterministic checks should cover:
 
-Never commit actual secrets. Use `.env.example` as a template.
+- notice/service completeness
+- deadline and compliance-period calculation
+- hearing/review/appeal references
+- enforcement action before required notice or cure period
+- duplicate or contradictory case events
+- unexplained case status transitions
+- penalty/fine escalation without supporting event
+- missing inspection/photographic evidence
+- permit/code relationship conflicts
+- inconsistent property or parcel identifiers
+- missing correspondence or response records
 
-## Scripts
+All findings include severity, rationale, evidence references, rule/policy version, and review status.
 
-```bash
-npm test          # Run 71 tests
-npm run build     # Production build
-npm run verify:launch  # Tests + build
-npm run dev       # Dev server
-```
+## Safety boundary
 
-## Test Scenario
+This is evidence-management, procedural-analysis, and workflow software. It does not decide that a violation is legally invalid, accuse an agency of misconduct, or replace an attorney. Jurisdictional rules must be reviewed before activation. Consequential communications require human approval.
 
-The primary end-to-end fixture is the McKinleyville, California scenario:
+## Development
 
-- Notice received recently, addressed to user's reportedly deceased mother
-- Allegations: crowing rooster, unpermitted structure, broken vehicles, solid waste, junkyard
-- Response deadline: September 3, 2026
-- Notice states silence = denial, may seek warrant
-- Prior police visit ~2 weeks earlier (USER_ASSERTION, no public record match)
-
-## License
-
-Proprietary — mycomind4-arch
+The initial implementation targets Next.js + React + TypeScript with Cloudflare D1/R2 compatibility. Keep the architecture modular so the reusable FairProcess/FairProcessMaps engines can later be extracted into shared packages rather than copied indefinitely.

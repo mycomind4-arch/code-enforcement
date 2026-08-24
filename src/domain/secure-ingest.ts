@@ -222,7 +222,7 @@ export function ingestDocument(input: {
 
   return {
     id: hash,
-    filename: fileValidation.sanitized || input.filename,
+    filename: fileValidation.sanitizedFilename || input.filename,
     mimeType: input.mimeType,
     sizeBytes: input.sizeBytes,
     source: input.source,

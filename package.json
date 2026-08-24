@@ -1,34 +1,31 @@
 {
   "name": "code-enforcement",
+  "version": "0.1.0",
   "private": true,
-  "sideEffects": false,
-  "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint .",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "test": "vitest run",
     "verify:launch": "npm test && npm run build"
   },
   "dependencies": {
-    "@tanstack/react-router": "^1.170.16",
-    "@tanstack/react-start": "^1.168.26",
-    "@tanstack/router-plugin": "^1.168.18",
-    "lucide-react": "^0.575.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwindcss": "^4.2.1",
-    "typescript": "^5.8.3",
-    "vite": "^8.0.16",
-    "zod": "^3.24.2"
+    "@tanstack/react-query": "^5.75.0",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.507.0",
+    "next": "^15.3.0",
+    "pdf-parse": "^1.1.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.2",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.16.5",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^5.2.0",
-    "eslint": "^9.32.0",
-    "vitest": "^3.2.4"
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.8.0",
+    "vitest": "latest"
   }
 }
