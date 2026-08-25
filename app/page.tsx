@@ -1,15 +1,72 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Respond to a Code Enforcement Notice | Analyze Your Case | My-CoMind',
-  description: 'Received a code enforcement notice? Organize the notice, property records, inspections, permits, photos, deadlines, and correspondence into one evidence-linked case before you respond.',
+  title: 'Code Enforcement | My-CoMind',
+  description: 'Upload your code enforcement notice. We identify the property, deadlines, allegations, and next steps.',
 }
 
-const workflows = [
-  ['Respond to a code enforcement notice', 'Understand the allegations, requested action, dates, and supporting records before preparing a response.'],
-  ['Challenge a property violation', 'Organize permits, photos, inspection records, correspondence, and property history around each alleged violation.'],
-  ['Appeal an enforcement decision', 'Reconstruct the case timeline, identify supporting evidence and unresolved issues, and prepare reviewed next steps.'],
-  ['Request code-enforcement records', 'Hand off directly into a records-request workflow when the evidence you need is still held by the agency.'],
-]
+export default function Home() {
+  return (
+    <main className="landing">
+      <header className="landingNav">
+        <strong>My-CoMind <span>/ Code Enforcement</span></strong>
+        <nav>
+          <a href="#how">How it works</a>
+          <Link href="/dashboard">Upload your notice →</Link>
+        </nav>
+      </header>
 
-export default function Home(){return <main className="landing"><header className="landingNav"><strong>My-CoMind <span>/ Code Enforcement</span></strong><nav><a href="#how">How it works</a><a href="#features">Case intelligence</a><Link href="/dashboard">Open case workspace →</Link></nav></header><section className="hero"><div className="eyebrow">CODE ENFORCEMENT NOTICE • PROPERTY VIOLATION • RESPONSE</div><h1>Received a code enforcement notice? <em>Understand your case before you respond.</em></h1><p className="lede">Turn a notice into an organized case with the property, alleged violations, permits, inspections, photos, correspondence, public records, deadlines, and evidence connected in one place.</p><div className="cta"><Link className="primary" href="/dashboard">Start a case →</Link><a className="secondary" href="/workflows/respond-to-property-inspection-request">See the inspection workflow</a></div><div className="trust">Evidence-first · Property-aware · Timeline-driven · Human review before consequential action</div></section><section id="how" className="section"><div className="eyebrow">FROM NOTICE TO ACTION</div><h2>Build the case around the evidence.</h2><div className="steps">{[['01','Start','Upload the notice and add photos, permits, inspection records, correspondence, and public records.'],['02','Reconstruct','Create a source-linked timeline of notices, inspections, communications, deadlines, and agency actions.'],['03','Analyze','Separate facts, inferences, unknowns, rules, and recommendations. Surface contradictions, gaps, and deadline issues.'],['04','Respond','Turn reviewed findings into a response, records request, inspection request, hearing/review preparation, or appeal workflow.']].map(([n,t,d])=><article key={n}><b>{n}</b><h3>{t}</h3><p>{d}</p></article>)}</div></section><section id="features" className="dark"><div><div className="eyebrow">CASE INTELLIGENCE</div><h2>More than a code-violation letter reader.</h2><p>The workspace connects the property, alleged violations, code references, permits, inspections, communications, evidence, deadlines, and agency actions so you can examine the whole case rather than isolated documents.</p></div><div className="auditGrid">{['Evidence-linked timeline','Violation and code references','Property and parcel context','Deadline and event analysis','Contradiction detection','Records-request handoff','Missing-evidence detection','Human-reviewed recommendations'].map(x=><div key={x}>✓ {x}</div>)}</div></section><section className="section"><div className="eyebrow">COMMON PROBLEMS</div><h2>Start with the situation you actually have.</h2><div className="chips">{workflows.map(([t])=><span key={t}>{t}</span>)}</div><div className="steps">{workflows.map(([t,d])=><article key={t}><h3>{t}</h3><p>{d}</p></article>)}</div><p className="fine">Local ordinances, deadlines, hearing rights, service requirements, and appeal procedures vary. The system identifies governing sources when available and labels uncertainty rather than presenting assumptions as legal conclusions.</p></section><section className="final"><h2>Have the notice already?</h2><p>Upload it and start building the evidence-linked case.</p><Link className="primary" href="/dashboard">Open the case workspace →</Link></section></main>}
+      <section className="hero">
+        <div className="eyebrow">CODE ENFORCEMENT NOTICE RESPONSE</div>
+        <h1>Upload your notice. <em>We&apos;ll handle the rest.</em></h1>
+        <p className="lede">We&apos;ll identify the property, deadlines, allegations, evidence gaps, and next steps — then help you respond with confidence.</p>
+        <div className="cta">
+          <Link className="primary" href="/dashboard">Upload your notice →</Link>
+          <a className="secondary" href="#how">How it works</a>
+        </div>
+        <div className="trust">No account needed to start · Your documents stay yours</div>
+      </section>
+
+      <section id="how" className="section">
+        <div className="eyebrow">HOW IT WORKS</div>
+        <h2>Three steps from notice to response.</h2>
+        <div className="steps">
+          {[
+            ['01', 'Upload', 'Drop in your notice, photos, permits, or any documents related to the case.'],
+            ['02', 'Review', 'We extract the key facts — address, deadline, violations, agency — and you confirm them.'],
+            ['03', 'Respond', 'With the facts organized, prepare your response, records request, or next action.'],
+          ].map(([n, t, d]) => (
+            <article key={n}>
+              <b>{n}</b>
+              <h3>{t}</h3>
+              <p>{d}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="eyebrow">WHAT WE ORGANIZE</div>
+        <h2>Everything in one place.</h2>
+        <div className="chips">
+          {[
+            'Property address and parcel',
+            'Response deadline',
+            'Alleged violations',
+            'Agency and jurisdiction',
+            'Evidence files',
+            'Case timeline',
+            'Completeness checks',
+          ].map(x => <span key={x}>{x}</span>)}
+        </div>
+        <p className="fine">Local ordinances, deadlines, hearing rights, and appeal procedures vary. The system identifies what it can from your documents and labels uncertainty rather than presenting assumptions as legal conclusions.</p>
+      </section>
+
+      <section className="final">
+        <h2>Have the notice already?</h2>
+        <p>Upload it and we&apos;ll get started.</p>
+        <Link className="primary" href="/dashboard">Upload your notice →</Link>
+      </section>
+    </main>
+  )
+}
