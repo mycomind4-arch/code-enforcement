@@ -3,11 +3,44 @@ import Link from 'next/link'
 export const metadata = {
   title: 'Code Enforcement | My-CoMind',
   description: 'Upload your code enforcement notice. We identify the property, deadlines, allegations, and next steps.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'Code Enforcement | My-CoMind',
+    description: 'Upload your code enforcement notice. We identify the property, deadlines, allegations, and next steps.',
+    type: 'website',
+    siteName: 'Code Enforcement',
+    url: '/',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Code Enforcement — My-CoMind' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Code Enforcement | My-CoMind',
+    description: 'Upload your code enforcement notice. We identify the property, deadlines, allegations, and next steps.',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function Home() {
   return (
-    <main className="landing">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Code Enforcement",
+        description: "Evidence-first command center for local code-enforcement cases.",
+        url: "https://mycomind4-arch-code-enforcement.pages.dev",
+        publisher: { "@type": "Organization", name: "My-CoMind" },
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: "Code Enforcement",
+        serviceType: "Code enforcement notice analysis and response preparation",
+        provider: { "@type": "Organization", name: "My-CoMind" },
+        description: "Upload your code enforcement notice. We identify the property, deadlines, allegations, and next steps.",
+        areaServed: { "@type": "Country", name: "United States" },
+      }) }} />
+      <main className="landing">
       <header className="landingNav">
         <strong>My-CoMind <span>/ Code Enforcement</span></strong>
         <nav>
@@ -68,5 +101,6 @@ export default function Home() {
         <Link className="primary" href="/dashboard">Upload your notice →</Link>
       </section>
     </main>
+    </>
   )
 }
