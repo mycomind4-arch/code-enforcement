@@ -42,6 +42,7 @@ export async function POST(request: Request) {
     const facts = extractFacts(text)
     return NextResponse.json({
       document: { name: file.name, size: file.size, type: file.type || 'application/octet-stream', extractedAt: new Date().toISOString(), characterCount: text.length },
+      extractedText: text,
       facts,
       provenance: { source: file.name, method: 'deterministic text extraction', note: 'Extracted values are suggestions. Confirm them against the source document before saving or acting.' },
     })

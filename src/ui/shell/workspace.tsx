@@ -13,57 +13,108 @@ import { ActionCenter } from '../actions/action-center'
 import { CommunicationsList } from '../communications/communications-list'
 import { WorkflowProgress, WorkflowSelector } from '../workflows/workflow-progress'
 import { ReviewPanel } from '../review/review-panel'
-import type { CaseAreaView, FindingViewModel } from '../types/view-models'
+import type {
+  CaseAreaView,
+  CaseViewModel,
+  OverviewViewModel,
+  TimelineEventViewModel,
+  EvidenceViewModel,
+  FindingViewModel,
+  ViolationViewModel,
+  PropertyViewModel,
+  ActionViewModel,
+  CommunicationViewModel,
+  WorkflowProgressViewModel,
+  WorkflowOptionViewModel,
+  HighConsequenceReviewViewModel,
+  SidebarItemViewModel,
+} from '../types/view-models'
 
-// ─── FIXTURE DATA ───────────────────────────────────────────────────────────────
-// The following import is DEVELOPMENT FIXTURE data only.
-// In production, case data flows through the same view model interfaces from
-// the entity/database layer. This fixture must never be used as default
-// persisted case data.
-// ──────────────────────────────────────────────────────────────────────────
-import {
-  fixtureCase, fixtureSidebar, fixtureOverview, fixtureTimeline,
-  fixtureEvidence, fixtureFindings, fixtureViolations, fixtureProperty,
-  fixtureActions, fixtureCommunications, fixtureWorkflowProgress,
-  fixtureWorkflowOptions, fixtureReview,
-} from '../fixtures/mckinleyville'
+// ─── Workspace Props ───────────────────────────────────────────────────────────
+
+export interface WorkspaceProps {
+  caseData: CaseViewModel | null
+  sidebarItems: SidebarItemViewModel[]
+  overview: OverviewViewModel | null
+  timelineEvents: TimelineEventViewModel[]
+  evidenceItems: EvidenceViewModel[]
+  findings: FindingViewModel[]
+  violations: ViolationViewModel[]
+  property: PropertyViewModel | null
+  actions: ActionViewModel[]
+  communications: CommunicationViewModel[]
+  workflowProgress: WorkflowProgressViewModel | null
+  workflowOptions: WorkflowOptionViewModel[]
+  review: HighConsequenceReviewViewModel | null
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div style={{
+      textAlign: 'center',
+      padding: '48px 24px',
+      color: colors.textMuted,
+      fontSize: typography.sm,
+    }}>
+      {message}
+    </div>
+  )
+}
 
 // ─── Main Workspace ───────────────────────────────────────────────────────────
 
-export function CodeEnforcementWorkspace() {
+export function CodeEnforcementWorkspace(props: WorkspaceProps) {
   const [view, setView] = useState<CaseAreaView>('overview')
 
   return (
     <CaseShell
-      context={fixtureCase}
-      sidebarItems={fixtureSidebar}
+      context={props.caseData || emptyCase}
+      sidebarItems={props.sidebarItems}
       initialView={view}
       onContinue={() => setView('workflows')}
       onReviewFindings={() => setView('findings')}
     >
-      <CaseShellContent view={view} onNavigate={setView} />
+      <CaseShellContent view={view} onNavigate={setView} {...props} />
     </CaseShell>
   )
 }
 
 // ─── View Router ──────────────────────────────────────────────────────────────
 
-function CaseShellContent({ view, onNavigate }: { view: CaseAreaView; onNavigate: (v: CaseAreaView) => void }) {
-  // Find any findings that require human review
+function CaseShellContent({
+  view,
+  onNavigate,
+  caseData,
+  overview,
+  timelineEvents,
+  evidenceItems,
+  findings,
+  violations,
+  property,
+}: {
+  view: CaseAreaView
+  onNavigate: (v: CaseAreaView) => void
+} & WorkspaceProps) {
   const reviewFindings = useMemo(
-    () => fixtureFindings.filter(f => f.humanReviewRequired),
-    []
+    () => findings.filter(f => f.humanReviewRequired),
+    [findings]
   )
 
   switch (view) {
     case 'overview':
-      return <CaseOverview context={fixtureCase} data={fixtureOverview} onNavigate={(v) => onNavigate(v as CaseAreaView)} />
+      return overview ? (
+        <CaseOverview context={caseData!} data={overview} onNavigate={(v) => onNavigate(v as CaseAreaView)} />
+      ) : (
+        <EmptyState message="Upload a notice document to begin analysis. The system will extract facts, identify jurisdiction, check for discrepancies, and run investigation cycles." />
+      )
 
     case 'timeline':
       return (
         <div>
           <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Timeline</h2>
-          <Timeline events={fixtureTimeline} />
+          {timelineEvents.length > 0 ? <Timeline events={timelineEvents} /> : <EmptyState message="Timeline events will appear here once a notice is analyzed." />}
         </div>
       )
 
@@ -71,7 +122,7 @@ function CaseShellContent({ view, onNavigate }: { view: CaseAreaView; onNavigate
       return (
         <div>
           <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Alleged Violations</h2>
-          <ViolationList violations={fixtureViolations} />
+          {violations.length > 0 ? <ViolationList violations={violations} /> : <EmptyState message="Alleged violations will be extracted from the notice document." />}
         </div>
       )
 
@@ -79,7 +130,7 @@ function CaseShellContent({ view, onNavigate }: { view: CaseAreaView; onNavigate
       return (
         <div>
           <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Evidence Center</h2>
-          <EvidenceCenter items={fixtureEvidence} />
+          {evidenceItems.length > 0 ? <EvidenceCenter items={evidenceItems} /> : <EmptyState message="Evidence items will appear here as documents are uploaded and analyzed." />}
         </div>
       )
 
@@ -87,27 +138,7 @@ function CaseShellContent({ view, onNavigate }: { view: CaseAreaView; onNavigate
       return (
         <div>
           <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Findings & Discrepancies</h2>
-          <FindingsCenter findings={fixtureFindings} />
-
-          {/* High-Consequence Review — appears when findings require human review */}
-          {reviewFindings.length > 0 && (
-            <div style={{ marginTop: '32px' }}>
-              <h2 style={{
-                fontSize: typography.lg,
-                fontWeight: typography.semibold,
-                color: colors.statusHigh,
-                marginBottom: '16px',
-                borderLeft: `3px solid ${colors.statusHigh}`,
-                paddingLeft: '12px',
-              }}>
-                High-Consequence Review
-              </h2>
-              <p style={{ fontSize: typography.sm, color: colors.textMuted, marginBottom: '16px', paddingLeft: '15px' }}>
-                The following findings require human authorization before any document is sent.
-              </p>
-              <ReviewPanel data={fixtureReview} />
-            </div>
-          )}
+          {findings.length > 0 ? <FindingsCenter findings={findings} /> : <EmptyState message="Findings will appear here once the discrepancy engine and investigation layers analyze the case." />}
         </div>
       )
 
@@ -115,15 +146,15 @@ function CaseShellContent({ view, onNavigate }: { view: CaseAreaView; onNavigate
       return (
         <div>
           <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Property Intelligence</h2>
-          <PropertyPanel info={fixtureProperty} />
+          {property ? <PropertyPanel info={property} /> : <EmptyState message="Property information will be extracted from the notice and enriched with public records." />}
         </div>
       )
 
     case 'actions':
       return (
         <div>
-          <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Action Center</h2>
-          <ActionCenter actions={fixtureActions} />
+          <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Actions</h2>
+          <EmptyState message="Recommended actions will appear here based on case findings and strategy analysis." />
         </div>
       )
 
@@ -131,23 +162,32 @@ function CaseShellContent({ view, onNavigate }: { view: CaseAreaView; onNavigate
       return (
         <div>
           <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Communications</h2>
-          <CommunicationsList communications={fixtureCommunications} />
+          <EmptyState message="Drafts, sent communications, and tracked mail will appear here." />
         </div>
       )
 
     case 'workflows':
       return (
         <div>
-          <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Workflow Progress</h2>
-          <WorkflowProgress data={fixtureWorkflowProgress} />
-          <div style={{ marginTop: '32px' }}>
-            <h3 style={{ fontSize: typography.sm, fontWeight: typography.semibold, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>Available Workflows</h3>
-            <WorkflowSelector options={fixtureWorkflowOptions} />
-          </div>
+          <h2 style={{ fontSize: typography.lg, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: '16px' }}>Workflows</h2>
+          <EmptyState message="Workflow options will appear here once the case has enough findings to support a defense strategy." />
         </div>
       )
 
     default:
       return null
   }
+}
+
+// ─── Fallback empty case ──────────────────────────────────────────────────────
+
+const emptyCase: CaseViewModel = {
+  caseId: 'pending',
+  propertyAddress: '',
+  caseNumber: '',
+  agency: '',
+  jurisdiction: '',
+  status: 'open',
+  urgency: 'medium',
+  urgencyReason: 'No document uploaded yet',
 }
