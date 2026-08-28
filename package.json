@@ -15,6 +15,7 @@
     "deploy": "npx @opennextjs/cloudflare build && npx @opennextjs/cloudflare deploy"
   },
   "dependencies": {
+    "@mailmypdf/pricing": "https://github.com/mycomind4-arch/mailmypdf-platform/releases/download/pricing-v0.2.0/mailmypdf-pricing-0.2.0.tgz",
     "@tanstack/react-query": "^5.75.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.507.0",
