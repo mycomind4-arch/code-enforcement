@@ -3,6 +3,58 @@ import pdf from 'pdf-parse'
 
 export const runtime = 'nodejs'
 
+// ── Rate limiting (in-memory, per-IP) ─────────────────────────
+const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10  // 10 extractions per minute per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW_MS }
+  }
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: entry.resetAt }
+  }
+  entry.count++
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetAt: entry.resetAt }
+}
+
+// ── Authentication ────────────────────────────────────────────
+// Requires either:
+//   1. A valid session cookie (fp_session or base44_session), OR
+//   2. An Authorization: Bearer <token> header matching the server's API key
+function authenticateRequest(request: Request): { ok: boolean; error?: string } {
+  // Check for Authorization header
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const serverKey = process.env.EXTRACT_API_KEY
+    if (serverKey && token === serverKey) {
+      return { ok: true }
+    }
+  }
+
+  // Check for session cookies
+  const cookieHeader = request.headers.get('cookie') || ''
+  const hasSession = /(?:fp_session|base44_session|sb-access-token)=/.test(cookieHeader)
+  if (hasSession) {
+    return { ok: true }
+  }
+
+  return { ok: false, error: 'Authentication required. Provide a session cookie or Authorization header.' }
+}
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp) return realIp
+  return 'unknown'
+}
+
 function firstMatch(text: string, patterns: RegExp[]) {
   for (const pattern of patterns) {
     const match = text.match(pattern)
@@ -22,6 +74,33 @@ function extractFacts(text: string) {
 }
 
 export async function POST(request: Request) {
+  // ── Authentication ──────────────────────────────────────────
+  const auth = authenticateRequest(request)
+  if (!auth.ok) {
+    return NextResponse.json(
+      { error: auth.error || 'Authentication required.' },
+      { status: 401, headers: { 'WWW-Authenticate': 'Bearer' } }
+    )
+  }
+
+  // ── Rate limiting ───────────────────────────────────────────
+  const ip = getClientIp(request)
+  const rateLimit = checkRateLimit(ip)
+  if (!rateLimit.allowed) {
+    const retryAfter = Math.ceil((rateLimit.resetAt - Date.now()) / 1000)
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Too many extraction requests.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(rateLimit.resetAt),
+        }
+      }
+    )
+  }
+
   try {
     const form = await request.formData()
     const file = form.get('file')
@@ -45,6 +124,11 @@ export async function POST(request: Request) {
       extractedText: text,
       facts,
       provenance: { source: file.name, method: 'deterministic text extraction', note: 'Extracted values are suggestions. Confirm them against the source document before saving or acting.' },
+    }, {
+      headers: {
+        'X-RateLimit-Remaining': String(rateLimit.remaining),
+        'X-RateLimit-Reset': String(rateLimit.resetAt),
+      }
     })
   } catch (error) {
     console.error('document extraction failed', error)

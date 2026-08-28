@@ -338,6 +338,12 @@ export const useCaseStore = create<CaseStoreState>((set, get) => ({
         sidebarItems,
         error: null,
       })
+
+      // ── Persist pipeline results to Base44 (durable storage) ───
+      // Replaces the previous browser-only state with backend persistence.
+      saveCaseToBackend(get()).catch((saveErr) => {
+        console.error('[case-store] Failed to persist case to backend:', saveErr)
+      })
     } catch (err) {
       console.error('[case-store] Pipeline error:', err)
       set({
@@ -449,3 +455,65 @@ export const useCaseStore = create<CaseStoreState>((set, get) => ({
     })
   },
 }))
+
+// ─── Durable Persistence ─────────────────────────────────────────────────────
+// The store now persists pipeline results to Base44 after analysis completes,
+// replacing the previous browser-only state.
+
+export async function saveCaseToBackend(state: CaseStoreState): Promise<{ ok: boolean; caseId?: string; error?: string }> {
+  if (!state.documentName || !state.documentText) {
+    return { ok: false, error: 'No document to save.' }
+  }
+
+  const extraction = state.extraction
+  const findings = state.unifiedFindings
+
+  const payload = {
+    documentName: state.documentName,
+    documentText: state.documentText,
+    caseNumber: extraction?.caseNumber?.value || null,
+    complaintNumber: extraction?.complaintNumber?.value || null,
+    propertyAddress: extraction?.propertyAddress?.value || null,
+    apn: extraction?.apn?.value || null,
+    recipientName: extraction?.recipient?.value || null,
+    agencyName: extraction?.agency?.value || null,
+    noticeDate: extraction?.noticeDate?.value || null,
+    responseDeadline: extraction?.responseDeadline?.value || null,
+    jurisdiction: extraction?.jurisdiction?.value || null,
+    status: 'analyzed',
+    findingsCount: findings.length,
+    findingsSummary: findings.slice(0, 5).map(f => f.statement).join('; '),
+    defenseReady: findings.length > 0 && !findings.some(f => f.severity === 'critical' && f.unresolved),
+    goldCertified: false,
+    blockingIssues: findings.filter(f => f.severity === 'critical' && f.unresolved).map(f => f.statement),
+    dueProcessScore: state.dueProcessScore,
+    reviewNotified: false,
+    findings: findings.map(f => ({
+      type: f.type,
+      severity: f.severity,
+      description: f.statement,
+      source: f.source,
+      resolved: !f.unresolved,
+      confidence: 'high' as const,
+      recommendedAction: f.recommendedAction,
+    })),
+  }
+
+  try {
+    const res = await fetch('/api/cases/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { ok: false, error: data.error || 'Save failed.' }
+    }
+
+    const data = await res.json()
+    return { ok: true, caseId: data.case?.id }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Network error.' }
+  }
+}

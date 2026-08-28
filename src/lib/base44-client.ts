@@ -152,3 +152,65 @@ export async function createCase(
 
   return res.json() as Promise<EnforcementCase>
 }
+
+/**
+ * Update an existing case with pipeline results
+ */
+export async function updateCase(
+  caseId: string,
+  data: Record<string, unknown>,
+): Promise<EnforcementCase> {
+  const url = `${BASE44_API_URL}/v1/apps/${APP_ID}/entities/EnforcementCase/${caseId}`
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${SERVICE_TOKEN}`,
+    },
+    body: JSON.stringify({ data }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to update case: ${res.status}`)
+  }
+
+  return res.json() as Promise<EnforcementCase>
+}
+
+/**
+ * Create findings for a case
+ */
+export async function createFindings(
+  caseId: string,
+  findings: Array<{
+    caseId: string
+    type: string
+    severity: string
+    description: string
+    source: string
+    resolved: boolean
+    confidence: string | null
+    recommendedAction: string | null
+  }>,
+): Promise<CaseFinding[]> {
+  const url = `${BASE44_API_URL}/v1/apps/${APP_ID}/entities/CaseFinding`
+  const results: CaseFinding[] = []
+
+  for (const finding of findings) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_TOKEN}`,
+      },
+      body: JSON.stringify({ data: finding }),
+    })
+
+    if (res.ok) {
+      const created = await res.json() as CaseFinding
+      results.push(created)
+    }
+  }
+
+  return results
+}
