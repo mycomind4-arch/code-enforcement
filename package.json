@@ -11,7 +11,8 @@
     "verify:launch": "npm test && npm run build",
     "build:cf": "npx @opennextjs/cloudflare build",
     "deploy:cf": "npx @opennextjs/cloudflare build && npx wrangler deploy",
-    "preview:cf": "npx @opennextjs/cloudflare build && npx wrangler dev"
+    "preview:cf": "npx @opennextjs/cloudflare build && npx wrangler dev",
+    "deploy": "npx @opennextjs/cloudflare build && npx @opennextjs/cloudflare deploy"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.75.0",
